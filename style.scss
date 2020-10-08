@@ -41,6 +41,31 @@ body{
         right: 0;
     }
 
+    .map{
+        height: auto;
+        position: fixed;
+        top: 0;
+        right: 0;
+        padding: 30px;
+        img{
+            width: 50px;
+            cursor: pointer;
+            animation: blink 2s linear infinite;
+        }
+    }
+
+}
+
+@keyframes blink {
+    0%{
+        opacity: 0;
+    }
+    50%{
+        opacity: 1;
+    }
+    100%{
+        opacity: 0;
+    }
 }
 
 #loading {
@@ -82,24 +107,20 @@ body{
     color: white;
     opacity: 0;
     transition: opacity 1s ease;
+    display: flex;
+    justify-content: center;
+    align-items: center;
     #btn-close{
         position: fixed;
         top: 10px;
         right: 10px;
-    }
-    canvas{
-        display: none;
-        width: 100vw;
-        height: 100vh;
+        z-index: 100;
     }
     iframe{
-        width: 90vw;
-        height: 90vh;
-        margin-left: 5vw;
-        margin-top: 70px;
-        border: none;
-        border-radius: 5px;
+        width: 80vw;
+        height: 90%;
     }
+
 }
 
 .hide{

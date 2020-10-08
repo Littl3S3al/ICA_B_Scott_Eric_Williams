@@ -10,6 +10,10 @@ const threeJsWindow = document.querySelector('#three-js-container');
 const popupWindow = document.querySelector('.popup-window');
 const closeBtn = document.querySelector('#btn-close');
 
+const mapBtn = document.querySelector('.map');
+
+const content = document.querySelector('.content');
+
 let currentObject;
 
 // loader
@@ -40,14 +44,14 @@ const main  = () => {
     const audioLoader = new THREE.AudioLoader();
 
     // camera
-    const camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 1, 10000 );
-    camera.position.set( 0, 400, 400 );
+    const camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 1, 15000 );
+    camera.position.set( 0, 2, 2 );
 
 
     // scene
     const scene = new THREE.Scene();
     scene.background = new THREE.Color( 0x000000 );
-    scene.fog = new THREE.FogExp2( 0x000000, 0.0005 );
+    scene.fog = new THREE.FogExp2( 0x000000, 0.01 );
 
     // controls
     const controls = new OrbitControls( camera, renderer.domElement );
@@ -55,16 +59,16 @@ const main  = () => {
     controls.enableDamping = true; // an animation loop is required when either damping or auto-rotation are enabled
     controls.dampingFactor = 0.05;
     controls.screenSpacePanning = false;
-    controls.minDistance = 100;
-    controls.maxDistance = 700;
+    controls.minDistance = 10;
+    controls.maxDistance = 100;
     controls.maxPolarAngle = Math.PI / 2;
+    controls.target.set(0, 15, 0);
 
     
 
     // loaders
     const loadManager = new THREE.LoadingManager();
     const textureLoader = new THREE.TextureLoader(loadManager);
-    const cubeTextureLoader = new THREE.CubeTextureLoader(loadManager);
 
     const addPointLight = (shade, intense, parent, angle, far, top, distance) => {
         const color = shade;
@@ -81,17 +85,17 @@ const main  = () => {
         parent.add(light.target);
     }
 
-    addPointLight(0xFFFFFF, 1, scene, 10, 500, 500, 1000);
+    addPointLight(0xFFFFFF, 1, scene, 1, 50, 500, 1000);
 
     scene.add( new THREE.AmbientLight( 0xffffff, 0.6 ) );
 
     // set up ground plane
-    const groundSize = 3000;
+    const groundSize = 300;
     const groundTexture = textureLoader.load('assets/grid.png');
     groundTexture.magFilter = THREE.NearestFilter;
     groundTexture.wrapS = THREE.RepeatWrapping;
     groundTexture.wrapT = THREE.RepeatWrapping;
-    const repeats = groundSize / 80;
+    const repeats = groundSize / 8;
     groundTexture.repeat.set(repeats, repeats);
 
     const planeGeo = new THREE.PlaneBufferGeometry(groundSize, groundSize);
@@ -116,13 +120,13 @@ const main  = () => {
     var material = new THREE.MeshPhongMaterial( { map: beaconTexture, color: 0xffffff } );
 
     for ( var i = 0; i < 100; i ++ ) {
-        var height = Math.random() * 50;
-        var geometry = new THREE.CylinderBufferGeometry( 0, 40, height, 4, 1 );
+        var height = Math.random() * 5;
+        var geometry = new THREE.CylinderBufferGeometry( 0, 4, height, 4, 1 );
 
         var mesh = new THREE.Mesh( geometry, material );
-        mesh.position.x = Math.random() * 1600 - 800;
+        mesh.position.x = Math.random() * 160 - 80;
         mesh.position.y = height/2;
-        mesh.position.z = Math.random() * 1600 - 800;
+        mesh.position.z = Math.random() * 160 - 80;
         mesh.updateMatrix();
         mesh.matrixAutoUpdate = false;
         scene.add( mesh );
@@ -132,34 +136,50 @@ const main  = () => {
     // add 5 planes
     var photos = [];
     var positions = [
-        {x: -300, z: 0}, {x: -100, z: -300}, {x: 100, z: -250}, {x: 400, z: 10}, {x: 200, z: 100}
+        {x: -30, z: 0}, {x: -10, z: -30}, {x: 10, z: -25}, {x: 40, z: 1}, {x: 20, z: 10}
     ]
     for ( var i = 0; i < 5; i ++){
         var texture = textureLoader.load(`assets/${i+1}.png`);
-        var photoMaterial = new THREE.MeshBasicMaterial({map: texture});
+        var photoMaterial = new THREE.MeshPhongMaterial({color: 'rgb(255, 255, 255)', map: texture});
         photoMaterial.transparent = true;
         photoMaterial.alphaTest = 0.1;
-        material.side = THREE.DoubleSide;
-        var width = 80;
-        var height = 80;
+        photoMaterial.side = THREE.DoubleSide;
+        var width = 8;
+        var height = 8;
         var geometry = new THREE.PlaneBufferGeometry(width, height);
 
-        var beaconGeometry = new THREE.CylinderBufferGeometry( 0, 40, 90, 4, 1 );
+        var beaconGeometry = new THREE.CylinderBufferGeometry( 0, 4, 9, 4, 1 );
         var mesh = new THREE.Mesh( beaconGeometry, material );
-        mesh.position.y = 45;
+        mesh.position.y = 4.5;
         mesh.position.x = positions[i].x;
         mesh.position.z = positions[i].z;
 
         scene.add(mesh);
 
         var photoMesh = new THREE.Mesh(geometry, photoMaterial);
-        photoMesh.name = i;
-        photoMesh.position.y = height/2 + 110;
+        photoMesh.name = i + 1;
+        photoMesh.position.y = height/2 + 11;
         photoMesh.position.x = positions[i].x;
         photoMesh.position.z = positions[i].z;
         photos.push(photoMesh);
-        photoMesh.lookAt(0, height/2 + 55, 0);
+        photoMesh.lookAt(0, height/2 + 5.5, 0);
     }
+
+
+    // add kartographi logo
+    var logo;
+    {
+        var kartographiTexture = textureLoader.load('assets/logo.png');
+        var logoMaterial = new THREE.MeshPhongMaterial({map: kartographiTexture });
+        logoMaterial.transparent = true;
+        logoMaterial.alphaTest = 0.1;
+        logoMaterial.side = THREE.DoubleSide;
+        var logoGeomery = new THREE.PlaneBufferGeometry( 30 , 10 );
+        logo = new THREE.Mesh( logoGeomery, logoMaterial );
+        logo.position.set(0, 15 ,0);
+        logo.lookAt(0, 15, 0 );
+    }
+    addPointLight(0xFF0000, 1, logo, 1, 50, 500, 1000);
 
 
     loadManager.onLoad = () => {
@@ -168,6 +188,7 @@ const main  = () => {
         photos.forEach( photo => {
             scene.add(photo);
         })
+        scene.add(logo);
         
     };
 
@@ -229,9 +250,15 @@ const main  = () => {
         time *= 0.0001;
         window.addEventListener('resize', onWindowResize, false);
 
-        photos.forEach(photo => {
-            photo.lookAt(camera.position);
-        })
+        // photos.forEach(photo => {
+        //     photo.lookAt(camera.position);
+        // })
+
+        // logo.lookAt(camera.position);
+        if(logo.position.z > -50){
+            logo.position.z -= 0.1;
+            logo.position.y += 0.05;
+        }
 
         pickHelper.pick(pickPosition, scene, camera, time);
         
@@ -239,9 +266,15 @@ const main  = () => {
             if(pickHelper.pickedObject.name){
                 currentObject = pickHelper.pickedObject.name;
                 itemSelected = true;
-
+                redColor(pickHelper.pickedObject, true);
             }
         }
+
+        photos.forEach(photo => {
+            if(!itemSelected){
+                redColor(photo, false);
+            }
+        })
         
         renderer.setPixelRatio( window.devicePixelRatio );
         renderer.render(scene, camera);
@@ -255,11 +288,14 @@ const main  = () => {
     requestAnimationFrame(render);
     controls.update();
 
-    const pinkColor = (object, blue) => {
+    const redColor = (object, red) => {
         let g = object.material.color.g;
-        if( g < 1 && !blue){ g += 0.005 };
-        if( g > 0.5 && blue){ g -= 0.005 };
-        object.material.color.setRGB(1, g, 1);
+        let b = object.material.color.b;
+        if( g < 1 && !red){ g += 0.05 };
+        if( b < 1 && !red){ b += 0.05 };
+        if( g > 0.5 && red){ g -= 0.05 };
+        if( b > 0.5 && red){ b -= 0.05 };
+        object.material.color.setRGB(1, g, b);
     }
 
 
@@ -342,14 +378,20 @@ window.addEventListener('mouseup', () => {
 });
 
 const checkForClick = () => {
-    if(!orbiting &&!viewing && currentObject){
-        
+    if(!orbiting && !viewing && currentObject){
+        console.log(currentObject);
     }
 
     currentObject = undefined;
 }
 
-
+mapBtn.addEventListener('click', () => {
+    openWindow();
+    console.log('map');
+    content.innerHTML = `
+    <iframe src="https://www.google.com/maps/d/u/0/embed?mid=1St2BuNVFokkjfl8Dvg64XMWbwkNLJKKS"></iframe>
+    `;
+})
 
 closeBtn.addEventListener('click', () => {
     closeWindow();
