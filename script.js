@@ -41,7 +41,7 @@ const main  = () => {
 
     // camera
     const camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 1, 10000 );
-    camera.position.set( 400, 200, 0 );
+    camera.position.set( 0, 400, 400 );
 
 
     // scene
@@ -81,9 +81,9 @@ const main  = () => {
         parent.add(light.target);
     }
 
-    addPointLight(0xFFFFFF, 0.8, scene, 1, 500, 500, 1000);
+    addPointLight(0xFFFFFF, 1, scene, 10, 500, 500, 1000);
 
-    scene.add( new THREE.AmbientLight( 0xffffff, 0.5 ) );
+    scene.add( new THREE.AmbientLight( 0xffffff, 0.6 ) );
 
     // set up ground plane
     const groundSize = 3000;
@@ -91,7 +91,7 @@ const main  = () => {
     groundTexture.magFilter = THREE.NearestFilter;
     groundTexture.wrapS = THREE.RepeatWrapping;
     groundTexture.wrapT = THREE.RepeatWrapping;
-    const repeats = groundSize / 200;
+    const repeats = groundSize / 80;
     groundTexture.repeat.set(repeats, repeats);
 
     const planeGeo = new THREE.PlaneBufferGeometry(groundSize, groundSize);
@@ -102,14 +102,22 @@ const main  = () => {
     const mapMesh = new THREE.Mesh(planeGeo, planeMat);
     mapMesh.receiveShadow = true;
     mapMesh.rotation.x = Math.PI * -.5;
+    mapMesh.rotation.z = Math.PI/180 *45;
     mapMesh.position.y = -2;
 
     
-    var material = new THREE.MeshPhongMaterial( { color: 0xffffff } );
+    // add in random pyramids
+    const beaconTexture = textureLoader.load('assets/grid.png');
+    beaconTexture.magFilter = THREE.NearestFilter;
+    beaconTexture.wrapS = THREE.RepeatWrapping;
+    beaconTexture.wrapT = THREE.RepeatWrapping;
+    const beaconrepeats = 2;
+    beaconTexture.repeat.set(beaconrepeats, beaconrepeats);
+    var material = new THREE.MeshPhongMaterial( { map: beaconTexture, color: 0xffffff } );
 
     for ( var i = 0; i < 100; i ++ ) {
-        var height = Math.random() * 60 + 50;
-        var geometry = new THREE.CylinderBufferGeometry( 0, 30, height, 4, 1 );
+        var height = Math.random() * 50;
+        var geometry = new THREE.CylinderBufferGeometry( 0, 40, height, 4, 1 );
 
         var mesh = new THREE.Mesh( geometry, material );
         mesh.position.x = Math.random() * 1600 - 800;
@@ -121,10 +129,45 @@ const main  = () => {
 
     }
 
+    // add 5 planes
+    var photos = [];
+    var positions = [
+        {x: -300, z: 0}, {x: -100, z: -300}, {x: 100, z: -250}, {x: 400, z: 10}, {x: 200, z: 100}
+    ]
+    for ( var i = 0; i < 5; i ++){
+        var texture = textureLoader.load(`assets/${i+1}.png`);
+        var photoMaterial = new THREE.MeshBasicMaterial({map: texture});
+        photoMaterial.transparent = true;
+        photoMaterial.alphaTest = 0.1;
+        material.side = THREE.DoubleSide;
+        var width = 80;
+        var height = 80;
+        var geometry = new THREE.PlaneBufferGeometry(width, height);
+
+        var beaconGeometry = new THREE.CylinderBufferGeometry( 0, 40, 90, 4, 1 );
+        var mesh = new THREE.Mesh( beaconGeometry, material );
+        mesh.position.y = 45;
+        mesh.position.x = positions[i].x;
+        mesh.position.z = positions[i].z;
+
+        scene.add(mesh);
+
+        var photoMesh = new THREE.Mesh(geometry, photoMaterial);
+        photoMesh.name = i;
+        photoMesh.position.y = height/2 + 110;
+        photoMesh.position.x = positions[i].x;
+        photoMesh.position.z = positions[i].z;
+        photos.push(photoMesh);
+        photoMesh.lookAt(0, height/2 + 55, 0);
+    }
+
 
     loadManager.onLoad = () => {
         loadingElem.style.display = 'none';
         scene.add(mapMesh); 
+        photos.forEach( photo => {
+            scene.add(photo);
+        })
         
     };
 
@@ -184,7 +227,11 @@ const main  = () => {
         currentObject = undefined;
         let itemSelected = false;
         time *= 0.0001;
-        window.addEventListener('resize', onWindowResize, false)
+        window.addEventListener('resize', onWindowResize, false);
+
+        photos.forEach(photo => {
+            photo.lookAt(camera.position);
+        })
 
         pickHelper.pick(pickPosition, scene, camera, time);
         
