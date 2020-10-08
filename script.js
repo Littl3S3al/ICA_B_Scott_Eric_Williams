@@ -379,9 +379,10 @@ window.addEventListener('mouseup', () => {
 
 const checkForClick = () => {
     if(!orbiting && !viewing && currentObject){
+        openWindow();
+        content.innerHTML = `<h1>${currentObject}</h1>`;
         console.log(currentObject);
     }
-
     currentObject = undefined;
 }
 
@@ -406,6 +407,7 @@ function closeWindow() {
         popupWindow.style.zIndex = -10;
     }, 1200)
     viewing = false;
+    orbiting = false;
 }
 function openWindow(){
     popupWindow.style.opacity = 1;
